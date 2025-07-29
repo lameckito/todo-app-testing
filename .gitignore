@@ -1,1 +1,38 @@
-node_modules
+# === Node.js (Backend) ===
+node_modules/
+.env
+coverage/
+package-lock.json
+npm-debug.log
+
+# === React Frontend ===
+frontend/node_modules/
+frontend/.env
+frontend/coverage/
+frontend/build/
+frontend/package-lock.json
+frontend/npm-debug.log
+
+# === Cypress ===
+cypress/videos/
+cypress/screenshots/
+
+# === macOS ===
+.DS_Store
+
+# === Logs ===
+*.log
+logs/
+*.log.*
+pids
+*.pid
+
+# === IDEs and Editors ===
+.vscode/
+.idea/
+*.swp
+
+# === System ===
+Thumbs.db
+ehthumbs.db
+
