@@ -79,12 +79,12 @@ todo-app-testing/
 
 ## 🧪 Testing Strategy
 
-### API Testing (Jest + Supertest)
-- **Authentication**: Login endpoint validation
-- **CRUD Operations**: Todo create, read, update, delete
-- **Authorization**: User-specific data access
-- **Error Handling**: Invalid input and unauthorized access
-- **Coverage**: 90%+ code coverage target
+ API Testing (Jest + Supertest)
+- Authentication: Login endpoint validation
+- CRUD Operations: Todo create, read, update, delete
+- Authorization: User-specific data access
+- Error Handling: Invalid input and unauthorized access
+- Coverage:  code coverage target
 
 ### UI Testing (Cypress)
 - **Authentication Flow**: Login/logout functionality
@@ -93,7 +93,6 @@ todo-app-testing/
 - **Responsive Design**: Mobile and desktop testing
 - **Data Persistence**: Session and state management
 
-## 📊 Available Scripts
 
 ### Backend Scripts
 ```bash
@@ -113,7 +112,7 @@ npm run test:e2e      # Start server and run E2E tests
 npm run test:all      # Run both API and E2E tests
 ```
 
-## 🔐 Test Credentials
+##  Test Credentials
 
 The application includes demo users for testing:
 
@@ -194,9 +193,9 @@ jobs:
       - run: npm run test:e2e
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
-### Common Issues
+##Common Issues
 
 1. **Port Already in Use**
    ```bash
@@ -226,32 +225,7 @@ jobs:
    - Ensure backend server includes CORS middleware
    - Check frontend API base URL configuration
 
-## 📋 Test Examples
-
-### API Test Example
-```javascript
-describe('POST /api/login', () => {
-  it('should login with valid credentials', async () => {
-    const response = await request(app)
-      .post('/api/login')
-      .send({ username: 'admin', password: 'password' });
-    
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('token');
-  });
-});
-```
-
-### E2E Test Example
-```javascript
-it('should create a new todo', () => {
-  cy.get('[data-testid="new-todo-input"]').type('New Test Todo');
-  cy.get('[data-testid="add-todo-button"]').click();
-  cy.contains('New Test Todo').should('be.visible');
-});
-```
-
-## 🎯 Key Testing Scenarios
+## Key Testing Scenarios
 
 ### Positive Scenarios
 - ✅ User authentication and session management
@@ -271,27 +245,4 @@ it('should create a new todo', () => {
 - ✅ Browser compatibility testing
 - ✅ Mobile responsive design
 
-## 📚 Additional Resources
 
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [Cypress Documentation](https://docs.cypress.io/)
-- [Supertest Documentation](https://github.com/visionmedia/supertest)
-- [React Testing Best Practices](https://testing-library.com/docs/react-testing-library/intro/)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
-
----
-
-**Setup Time**: < 2 minutes | **Test Execution**: ~3-5 minutes | **Coverage**: 90%+ backend, comprehensive frontend
-
-For questions or issues, please check the troubleshooting section or create an issue in the repository.
