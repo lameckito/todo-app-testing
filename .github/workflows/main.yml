@@ -68,7 +68,7 @@ jobs:
 
       # Wait for frontend
       - name: Wait for frontend to be ready
-        run: npx wait-on http://localhost:3000 --timeout 60000
+        run: npx wait-on http://localhost:3000 --timeout 120000
 
       # Run Cypress
       - uses: cypress-io/github-action@v6
