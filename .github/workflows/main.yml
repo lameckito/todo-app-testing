@@ -60,6 +60,9 @@ jobs:
         run: npx wait-on http://localhost:5000/api/health --timeout 60000
 
       # Start frontend
+      - name: Install dependencies
+        run: npm install
+        
       - name: Start frontend server
         run: npm start &
         working-directory: frontend
@@ -68,7 +71,7 @@ jobs:
 
       # Wait for frontend
       - name: Wait for frontend to be ready
-        run: npx wait-on http://localhost:3000 --timeout 120000
+        run: npx wait-on http://localhost:3000 --timeout 180000
 
       # Run Cypress
       - uses: cypress-io/github-action@v6
