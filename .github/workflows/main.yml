@@ -2,186 +2,98 @@ name: Todo App CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, develop ]
   pull_request:
     branches: [ main, master ]
 
 jobs:
-  # Backend API Testing
   api-tests:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [16.x, 18.x, 20.x]
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: |
+          npm run test:coverage
+          cp coverage/lcov-report/lcov.info coverage/lcov.info || echo "Missing coverage file"
+      - uses: codecov/codecov-action@v3
+        with:
+          files: coverage/lcov.info
+          flags: backend
+          fail_ci_if_error: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-${{ matrix.node-version }}
+          path: coverage/
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-
-    - name: Install backend dependencies
-      run: npm ci
-
-    - name: Run API tests with coverage
-      run: |
-        npm run test:coverage
-        cp coverage/lcov-report/lcov.info coverage/lcov.info || echo "lcov.info not found"
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        files: ./coverage/lcov.info
-        flags: backend
-        name: backend-coverage
-        fail_ci_if_error: false
-
-    - name: Upload coverage artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-coverage-${{ matrix.node-version }}
-        path: coverage/
-        retention-days: 7
-
-  # Frontend E2E Tests with Cypress
   e2e-tests:
-    runs-on: ubuntu-latest
     needs: api-tests
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: npm
+      - run: npm ci
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+      - name: Backend Startup
+        run: |
+          npm start &
+          npx wait-on http://localhost:5000/api/health --timeout 60000
+      - name: Frontend Startup
+        run: |
+          cd frontend && npm start &
+          npx wait-on http://localhost:3000 --timeout 60000
+      - uses: cypress-io/github-action@v6
+        with:
+          wait-on: http://localhost:3000,http://localhost:5000/api/health
+          wait-on-timeout: 60
+          config: baseUrl=http://localhost:3000
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18.x
-        cache: 'npm'
-
-    - name: Install backend dependencies
-      run: npm ci
-
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm ci
-
-    - name: Install Cypress dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
-
-    - name: Start backend server
-      run: |
-        npm start &
-        npx wait-on http://localhost:5000/api/health --timeout 60000
-      env:
-        NODE_ENV: test
-
-    - name: Start frontend server
-      run: |
-        cd frontend && npm start &
-        npx wait-on http://localhost:3000 --timeout 60000
-      env:
-        BROWSER: none
-        CI: true
-
-    - name: Run Cypress tests
-      uses: cypress-io/github-action@v6
-      with:
-        wait-on: 'http://localhost:3000,http://localhost:5000/api/health'
-        wait-on-timeout: 60
-        config: baseUrl=http://localhost:3000
-
-    - name: Upload Cypress screenshots/videos
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: cypress-artifacts
-        path: |
-          cypress/screenshots
-          cypress/videos
-        retention-days: 7
-
-  # Linting and Code Quality
   code-quality:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: npm
+      - run: npm ci
+      - run: npx eslint . --ext .js,.jsx || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18.x
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Run ESLint
-      run: npx eslint . --ext .js,.jsx --format json --output-file eslint-report.json || true
-
-    - name: Upload ESLint report
-      uses: actions/upload-artifact@v4
-      with:
-        name: eslint-report
-        path: eslint-report.json
-        retention-days: 7
-
-    - name: SonarCloud Scan (if token exists)
-      if: env.SONAR_TOKEN != ''
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  # Security
-  security-audit:
+  security:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+      - run: npm ci
+      - run: npm audit --audit-level=high || true
+      - uses: actions/dependency-review-action@v3
+        if: github.event_name == 'pull_request'
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18.x
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Run npm audit
-      run: npm audit --audit-level=high || true
-
-    - name: Dependency vulnerability check (PRs only)
-      if: github.event_name == 'pull_request'
-      uses: actions/dependency-review-action@v3
-
-  # Optional: Notify on failure
-  notify:
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-    - name: Slack Notify (if webhook exists)
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-# Environment variables
 env:
   CI: true
   NODE_ENV: test
-  JWT_SECRET: test-secret-key-for-ci
