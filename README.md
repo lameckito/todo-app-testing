@@ -1,8 +1,8 @@
 # Todo App with Comprehensive Testing Suite
 
-A full-stack Todo application with React frontend and Node.js backend, featuring comprehensive automated testing with Jest, Supertest, and Cypress.
+A full-stack Todo application  as stated by the document with React frontend and Node.js backend, featuring comprehensive automated testing with Jest, Supertest, and Cypress.
 
-## 🚀 Quick Start (< 2 minutes setup)
+## Quick Start
 
 ### Prerequisites
 - Node.js 16+ and npm
@@ -77,7 +77,7 @@ todo-app-testing/
 └── README.md
 ```
 
-## 🧪 Testing Strategy
+## Testing Strategy
 
  API Testing (Jest + Supertest)
 - Authentication: Login endpoint validation
@@ -121,7 +121,7 @@ The application includes demo users for testing:
 | admin    | password | Admin user  |
 | user     | password | Regular user|
 
-## 🏗️ Application Features
+##  Application Features
 
 ### Backend API (Node.js/Express)
 - JWT-based authentication
@@ -137,7 +137,7 @@ The application includes demo users for testing:
 - Responsive design
 - Loading states and error handling
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 ```bash
@@ -153,7 +153,7 @@ NODE_ENV=development         # Environment mode
 - Screenshots on failure: Enabled
 - Default timeout: 10 seconds
 
-## 📈 Coverage Reports
+## Coverage Reports
 
 After running tests with coverage:
 ```bash
@@ -165,7 +165,7 @@ Reports are generated in multiple formats:
 - **HTML**: `coverage/lcov-report/index.html`
 - **LCOV**: `coverage/lcov.info` (for CI/CD integration)
 
-## 🚦 Continuous Integration
+##  Continuous Integration
 
 ### GitHub Actions
 The project includes a CI/CD pipeline (`.github/workflows/ci.yml`) that:
