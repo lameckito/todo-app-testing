@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm ci
+      - run: npm install
       - run: |
           npm run test:coverage
           cp coverage/lcov-report/lcov.info coverage/lcov.info || echo "Missing coverage file"
@@ -41,24 +41,43 @@ jobs:
         with:
           node-version: 18.x
           cache: npm
-      - run: npm ci
-      - name: Install frontend deps
-        run: |
-          cd frontend
-          npm ci
-      - name: Backend Startup
-        run: |
-          npm start &
-          npx wait-on http://localhost:5000/api/health --timeout 60000
-      - name: Frontend Startup
-        run: |
-          cd frontend && npm start &
-          npx wait-on http://localhost:3000 --timeout 60000
+
+      # Install backend
+      - run: npm install
+
+      # Install frontend
+      - run: npm install
+        working-directory: frontend
+
+      # Start backend
+      - name: Start backend server
+        run: npm start &
+        env:
+          PORT: 5000
+
+      # Wait for backend
+      - name: Wait for backend to be ready
+        run: npx wait-on http://localhost:5000/api/health --timeout 60000
+
+      # Start frontend
+      - name: Start frontend server
+        run: npm start &
+        working-directory: frontend
+        env:
+          PORT: 3000
+
+      # Wait for frontend
+      - name: Wait for frontend to be ready
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      # Run Cypress
       - uses: cypress-io/github-action@v6
         with:
           wait-on: http://localhost:3000,http://localhost:5000/api/health
           wait-on-timeout: 60
           config: baseUrl=http://localhost:3000
+
+      # Upload Cypress Artifacts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -75,7 +94,7 @@ jobs:
         with:
           node-version: 18.x
           cache: npm
-      - run: npm ci
+      - run: npm install
       - run: npx eslint . --ext .js,.jsx || true
       - uses: actions/upload-artifact@v4
         with:
@@ -89,7 +108,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18.x
-      - run: npm ci
+      - run: npm install
       - run: npm audit --audit-level=high || true
       - uses: actions/dependency-review-action@v3
         if: github.event_name == 'pull_request'
